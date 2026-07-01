@@ -1,0 +1,8 @@
+{
+  "name": "Coevolve",
+  "description": "An interactive co-evolutionary simulation game representing research opportunities, solutions, and uncertainties on a tactile vector oilfield map canvas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

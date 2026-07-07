@@ -82,7 +82,7 @@ quality-checking ritual — target audience: other students. Playability is trea
 solution quality: the system makes judgement *practiceable* — students compare outputs,
 spot hallucinations, test confidence, and reflect on their own learning.
 
-### Session trace — 3 completed co-evolutionary loops
+### Session trace — 4 completed co-evolutionary loops
 
 **Initial Problem Frame.** Designing for university students under deadline pressure
 who want to use GenAI tools (ChatGPT, Claude, Copilot) meaningfully without replacing
@@ -100,24 +100,30 @@ their own learning. Seeded with three raw observations:
 
 | Loop | Flagged configuration (Opportunity / Solution / Uncertainty) | Probe seed | Key evidence harvested |
 | --- | --- | --- | --- |
-| 1 | Skill Integration / GenAI Tutor / User Adoption | Deploy AI tutoring sessions at midnight for one week; track usage and feedback | *Midnight Engagement Surge* (students surprisingly energized late at night) vs. *AI Tutor Fatigue* (exhaustion, sleep disruption) |
-| 2 | Real-Time Feedback / Dynamic Socratic Sparring Ring / Repetitive Fatigue Thresholds | Timed, adaptive quiz sequence; feedback on session length and pacing | Engagement peaks at midnight but questioning intensity overwhelms after ~1h; too-rapid pacing triggers fatigue and skipped answers |
-| 3 | Adaptive Scaffolding Space / Interactive Workshops / Long-Term Impact | Dynamic intensity reductions after midnight to test effects on student autonomy | *Increased Student Trust* (adaptive system felt trusting, kept effort up late) vs. *Fatigue Management Challenges* (rapid cognitive decline after midnight) |
+| 1 | Skill Integration / GenAI Proficiency Modules / User Trust | 3-day trial module with interactive quizzes and real-world GenAI tasks | *Positive Engagement* (students valued AI that supports rather than replaces effort) vs. *GitHub Integration Challenge* (friction uploading code — formatting, local↔remote consistency) |
+| 2 | Collaborative Coding Spaces / Virtual Coding Workshops / Long-term Effectiveness | 24-hour virtual workshop, pair students, track progress and feedback | *Seamless Integration Challenges* (tool compatibility, hard to find fitting APIs) vs. *High Trust in Peer Collaboration* (paired trust drove project progress) |
+| 3 | Peer Trust Mechanisms / Peer Review Badges / Peer Trust Measurability | Mock badge system on one project; track views and comments | *Positive Engagement Boost* (peer-review badges raised confidence in AI-generated content) vs. *Usability Concerns* (badge system too complex for less tech-savvy users) |
+| 4 | Diverse Trust Signals / Expert-Generated Badges / Badge Effectiveness Over Time | Monthly badge program with rotating experts to gauge long-term impact | Concrete badge concepts emerged — *De-Bugging Detective* (catching AI errors → self-supervision), *Socratic Navigator* (scaffolded-AI prompting → agency), *Code-Reviewer* (peer review → domain knowledge) |
 
-**Final mutated Problem Frame:** *"Trust Erosion vs. Fatigue: Midnight's Cognitive
-Quagmire"* — Reframe-Meter drift: **45%** from the starting point.
+**Final mutated Problem Frame:** *"Badge dynamics shift trust in AI from fleeting to
+enduring."* — Reframe-Meter drift: **63%** from the starting point.
 
-**What the system revealed.** The problem co-evolved away from "AI replacing learning"
-toward a sharper tension the initial frame never mentioned: students do their real
-AI-assisted cognitive work at midnight, exactly when trust in themselves and their
-capacity to think critically is lowest. Each loop kept surfacing the same
-signal-vs-friction pair — engagement peaks late at night, but so does cognitive
-collapse — suggesting that any "use AI well" service has to be designed for the tired,
-anxious 2:00 AM student, not the idealized daytime one.
+**What the system revealed.** The problem co-evolved a long way from its start: from
+"how do students use AI meaningfully" toward **trust as the real design material**, and
+specifically how trust in AI-assisted work gets *built and made durable*. The turning
+point was loop 2→3, where the recurring signal — students trust *each other* more
+readily than the tool — pushed the frame toward peer-trust mechanisms. By loop 4 the
+system had generated genuinely usable service concepts: a badge economy that rewards
+the exact behaviours the original observations were missing — catching AI errors
+(vs. The Vending Machine), intentional scaffolded prompting (vs. blind regeneration),
+and peer code review (vs. hidden 2 AM workflows). That is the payoff the assignment
+asks for: not a game, but a concrete, testable direction the initial frame couldn't
+see.
 
-*(Honest limits: the local 7B model occasionally bleeds metaphors — loop 3 briefly
-talks about "workout intensity" and "complex movements" — a visible trade-off of
-running fully local instead of a frontier cloud model.)*
+*(Honest limits: the run shows the frame text propagating literally — a stray "GitHub"
+in the seed surfaced as a "GitHub Integration Challenge" finding in loop 1 — a visible
+reminder that the local model builds directly on whatever wording enters the frame,
+and a trade-off of running fully local rather than on a frontier cloud model.)*
 
 ## Run locally
 

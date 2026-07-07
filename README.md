@@ -70,16 +70,52 @@ extended (local Ollama backend, workshop mode, card expansion, reframe engine).
 
 ## Example outputs
 
-From a run on the "Student AI Workflows" scenario (audience: university students &
-professors):
+**Applied design challenge: helping students use AI well for study work.**
+*How might we help students use AI in ways that improve learning rather than replace
+it?* The investigation covered current AI use in research, writing, coding, and exam
+prep; unclear rules, quality checks, overtrust, and guilt; and how AI changes learning
+habits and responsibilities. Possible service directions included an AI study
+companion, an academic-integrity support flow, a prompt practice service, and an AI
+quality-checking ritual — target audience: other students. Playability is treated as a
+solution quality: the system makes judgement *practiceable* — students compare outputs,
+spot hallucinations, test confidence, and reflect on their own learning.
 
-- **Landscape cards** — e.g. Opportunity "Engage Community", Solution "Badges & Points
-  System", Uncertainty "Peer Feedback Effectiveness — how will peers provide
-  constructive and helpful feedback?" (see screenshot above).
-- **Reframed Problem Frame after one loop** — *"Co-Learning Milestone: Competence is
-  fine, but verification feels like punishment, not help."* — the system moved the
-  problem from "students cheat with AI" toward verification-as-trust, which is exactly
-  the kind of frame shift the game is built to surface.
+### Session trace — 3 completed co-evolutionary loops
+
+**Initial Problem Frame.** Designing for university students under deadline pressure
+who want to use GenAI tools (ChatGPT, Claude, Copilot) meaningfully without replacing
+their own learning. Seeded with three raw observations:
+
+- **The 2:00 AM Crunch** — under deadline panic, students let AI write whole blocks of
+  code or text; immediate relief, followed by deep anxiety that they couldn't explain
+  the work if asked.
+- **The Vending Machine** — when AI errors or hallucinates, students don't analyze the
+  logic; they blindly hit "regenerate" / "fix this" until it magically works.
+- **The Gray-Zone Panic** — vague "use AI responsibly" rules breed AI guilt and
+  imposter syndrome, so students hide their real workflows from instructors.
+
+**How the frame evolved across the loops:**
+
+| Loop | Flagged configuration (Opportunity / Solution / Uncertainty) | Probe seed | Key evidence harvested |
+| --- | --- | --- | --- |
+| 1 | Skill Integration / GenAI Tutor / User Adoption | Deploy AI tutoring sessions at midnight for one week; track usage and feedback | *Midnight Engagement Surge* (students surprisingly energized late at night) vs. *AI Tutor Fatigue* (exhaustion, sleep disruption) |
+| 2 | Real-Time Feedback / Dynamic Socratic Sparring Ring / Repetitive Fatigue Thresholds | Timed, adaptive quiz sequence; feedback on session length and pacing | Engagement peaks at midnight but questioning intensity overwhelms after ~1h; too-rapid pacing triggers fatigue and skipped answers |
+| 3 | Adaptive Scaffolding Space / Interactive Workshops / Long-Term Impact | Dynamic intensity reductions after midnight to test effects on student autonomy | *Increased Student Trust* (adaptive system felt trusting, kept effort up late) vs. *Fatigue Management Challenges* (rapid cognitive decline after midnight) |
+
+**Final mutated Problem Frame:** *"Trust Erosion vs. Fatigue: Midnight's Cognitive
+Quagmire"* — Reframe-Meter drift: **45%** from the starting point.
+
+**What the system revealed.** The problem co-evolved away from "AI replacing learning"
+toward a sharper tension the initial frame never mentioned: students do their real
+AI-assisted cognitive work at midnight, exactly when trust in themselves and their
+capacity to think critically is lowest. Each loop kept surfacing the same
+signal-vs-friction pair — engagement peaks late at night, but so does cognitive
+collapse — suggesting that any "use AI well" service has to be designed for the tired,
+anxious 2:00 AM student, not the idealized daytime one.
+
+*(Honest limits: the local 7B model occasionally bleeds metaphors — loop 3 briefly
+talks about "workout intensity" and "complex movements" — a visible trade-off of
+running fully local instead of a frontier cloud model.)*
 
 ## Run locally
 

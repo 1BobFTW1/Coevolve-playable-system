@@ -107,6 +107,8 @@ export default function App() {
   type CardBranch = { id: string; kind: "pro" | "contra" | "question"; title: string; description: string };
   const [cardBranches, setCardBranches] = useState<{ [cardId: string]: CardBranch[] }>({});
   const [branchLoadingCardId, setBranchLoadingCardId] = useState<string | null>(null);
+  // Card currently being swapped for a fresh AI-generated alternative
+  const [refreshingCardId, setRefreshingCardId] = useState<string | null>(null);
 
   // API Call Loaders
   const [isGeneratingLandscape, setIsGeneratingLandscape] = useState<boolean>(false);
@@ -940,8 +942,9 @@ ${prep}
       setProblemFrame(updatedFrame);
       setReframeDrift(prev => Math.min(100, prev + driftDelta));
 
-      // Rotate cards and refresh the field coordinates for next loop
-      rotateLandscapeForNextLoop(opp?.id, sol?.id, unc?.id);
+      // Co-evolve the landscape around the mutated frame (fire-and-forget: the
+      // landscape view shows its generation loader while this runs)
+      void regenerateLandscapeForNextLoop(updatedFrame, findings);
       
       setLoopIndex(prev => prev + 1);
       setGameStage("LANDSCAPE");
@@ -969,47 +972,60 @@ ${prep}
     }
   };
 
-  // Programmatically rotates landscape cards, generating new variants for next loops
-  const rotateLandscapeForNextLoop = (oppId?: string, solId?: string, uncId?: string) => {
-    setOpportunities(prev => {
-      // Drop the chosen card AND any injected wild cards so they don't carry into the next loop
-      const filtered = prev.filter(c => c.id !== oppId && !c.isWildCard);
-      const newAdd: LandscapeCard = {
-        id: `opp-rot-${Date.now()}`,
-        type: "opportunity",
-        title: "Adaptive Scaffolding Space",
-        description: "Focus on scaffolding system inputs dynamically relative to live user competency logs.",
-        extraLabel: "Evolved Area",
-        rating: "low"
-      };
-      return [newAdd, ...filtered];
-    });
+  // Co-evolves the landscape for the next loop: regenerates all cards from the mutated
+  // problem frame + fresh evidence, avoiding titles already explored in earlier loops.
+  const regenerateLandscapeForNextLoop = async (updatedFrame: string, evidence: Finding[]) => {
+    const avoidTitles = [
+      ...opportunities.map(c => c.title),
+      ...solutions.map(c => c.title),
+      ...uncertainties.map(c => c.title),
+      ...retiredWells.map(w => w.title)
+    ];
+    setIsGeneratingLandscape(true);
+    try {
+      const response = await fetch("/api/landscape/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problemFrame: updatedFrame, evidence, avoidTitles })
+      });
+      if (!response.ok) throw new Error("API failure");
+      const data = await response.json();
+      setOpportunities(data.opportunities || []);
+      setSolutions(data.solutions || []);
+      setUncertainties(data.uncertainties || []);
+      showFeedback("Landscape re-surveyed around the mutated problem frame.");
+    } catch (err) {
+      console.error("Landscape co-evolution failed:", err);
+      showFeedback("Couldn't regenerate the landscape — previous cards kept. Is Ollama running?");
+    } finally {
+      setIsGeneratingLandscape(false);
+    }
+  };
 
-    setSolutions(prev => {
-      const filtered = prev.filter(c => c.id !== solId && !c.isWildCard);
-      const newAdd: LandscapeCard = {
-        id: `sol-rot-${Date.now()}`,
-        type: "solution",
-        title: "Dynamic Socratic Sparring Ring",
-        description: "Deploy micro-coaching modules verifying core mental logic layers of inputs.",
-        extraLabel: "Evolved Idea",
-        rating: "low"
-      };
-      return [newAdd, ...filtered];
-    });
-
-    setUncertainties(prev => {
-      const filtered = prev.filter(c => c.id !== uncId && !c.isWildCard);
-      const newAdd: LandscapeCard = {
-        id: `unc-rot-${Date.now()}`,
-        type: "uncertainty",
-        title: "Repetitive Fatigue Thresholds",
-        description: "Will students find cognitive sparring loops rewarding or disable them for quick workflows?",
-        extraLabel: "Evolved Question",
-        rating: "low"
-      };
-      return [newAdd, ...filtered];
-    });
+  // Swaps a single card for a fresh AI-generated alternative grounded in the current frame
+  const regenerateCard = async (card: LandscapeCard, type: CardType) => {
+    setRefreshingCardId(card.id);
+    const otherTitles = [...opportunities, ...solutions, ...uncertainties]
+      .filter(c => c.id !== card.id)
+      .map(c => c.title);
+    try {
+      const response = await fetch("/api/landscape/regenerate-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problemFrame, card, otherTitles })
+      });
+      if (!response.ok) throw new Error("regenerate failed");
+      const fresh: LandscapeCard = await response.json();
+      const swap = (prev: LandscapeCard[]) => prev.map(c => (c.id === card.id ? fresh : c));
+      if (type === "opportunity") setOpportunities(swap);
+      else if (type === "solution") setSolutions(swap);
+      else setUncertainties(swap);
+    } catch (err) {
+      console.error("Card regeneration failed:", err);
+      showFeedback("Card refresh failed — is Ollama running? Try again.");
+    } finally {
+      setRefreshingCardId(null);
+    }
   };
 
   const handleCopySummary = () => {
@@ -1228,6 +1244,17 @@ ${prep}
             <span className="text-[9px] font-mono font-semibold tracking-wide text-slate-400 uppercase bg-slate-950 px-2 py-0.5 rounded inline-block mb-1.5 border border-slate-850">
               {card.extraLabel || t.labelFallback}
             </span>
+
+            {!isHigh && (
+              <button
+                onClick={() => regenerateCard(card, type)}
+                disabled={refreshingCardId === card.id}
+                title="Regenerate this card from the current problem frame"
+                className="absolute top-0 right-0 p-1 rounded text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors disabled:opacity-70 cursor-pointer"
+              >
+                <RefreshCw className={`w-3 h-3 ${refreshingCardId === card.id ? "animate-spin" : ""}`} />
+              </button>
+            )}
 
             <h4 className={`text-xs font-bold mb-1 font-display tracking-tight ${t.title}`}>{card.title}</h4>
             <p className="text-[10px] text-slate-300 leading-relaxed mb-2 line-clamp-3">{card.description}</p>

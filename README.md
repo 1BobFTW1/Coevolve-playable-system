@@ -23,8 +23,9 @@ The core loop has five stages, shown in the footer of the app
    tactile, draggable field: 3 **Opportunity Areas** (angles for intervention),
    3 **Solution Families** (concrete concepts), and 3 **Uncertainty Fields** (critical
    assumptions to test). You curate: expand any card into pro / contra / open-question
-   branches, inject a surprise wild card, and plant one **Drill Flag** in each of the
-   three areas to commit to a configuration.
+   branches, inject a surprise wild card, re-roll any single card that doesn't
+   resonate (↻ icon), and plant one **Drill Flag** in each of the three areas to
+   commit to a configuration.
 3. **Probe** — Your selected Opportunity + Solution + Uncertainty are synthesized into
    a single **Probe Family**: a named prototype with a description and an actionable
    "probe seed" — a test you could deploy within 24 hours.
@@ -38,8 +39,9 @@ The core loop has five stages, shown in the footer of the app
 5. **Reframe** — The co-evolution engine reads the accumulated evidence and **mutates
    the Problem Frame** into a new, sharper statement (e.g. "Competence is fine, but
    verification feels like punishment, not help"). A **Reframe-Meter** tracks the
-   semantic drift away from your starting point across loops. Then the loop restarts
-   from the new frame.
+   semantic drift away from your starting point across loops. The whole landscape is
+   then regenerated around the mutated frame — shaped by the fresh evidence and barred
+   from repeating cards explored in earlier loops — and the loop restarts.
 
 ![The landscape field — opportunity crest, solution basin, uncertainty rift](assets/02-landscape-field.png)
 

@@ -94,7 +94,7 @@ function workshopBlock(workshopNotes?: string): string {
 // 1. GENERATE LANDSCAPE
 // Generates 3 Opportunities, 3 Solutions, 3 Uncertainties based on Problem Frame
 app.post("/api/landscape/generate", async (req, res) => {
-  const { problemFrame } = req.body;
+  const { problemFrame, evidence, avoidTitles } = req.body;
 
   if (!problemFrame) {
     return res.status(400).json({ error: "problemFrame is required." });
@@ -132,9 +132,33 @@ Follow these strict rules:
   ]
 }`;
 
-    const prompt = `Current Problem Frame: "${problemFrame}"`;
+    const banned: string[] = Array.isArray(avoidTitles) ? avoidTitles.filter((t: any) => typeof t === "string" && t.trim()) : [];
 
-    const parsed = await callOllama(systemInstruction, prompt, 0.8);
+    const evidenceBlock = Array.isArray(evidence) && evidence.length > 0
+      ? `\n\nFreshly harvested qualitative evidence from the last probe. Let what was just learned visibly shape the new cards, but NEVER copy the evidence titles as card titles:\n${JSON.stringify(evidence)}`
+      : "";
+
+    // Ban list lives in the SYSTEM instruction — small models tend to echo lists that
+    // appear at the end of the user prompt back as output.
+    const banInstruction = banned.length > 0
+      ? `\n- FORBIDDEN TITLES: the following titles were already explored and are BANNED. None of them (nor close rephrasings) may appear anywhere in your output. Invent genuinely new angles instead: ${banned.map(t => `"${t}"`).join(", ")}.`
+      : "";
+
+    const prompt = `Current Problem Frame: "${problemFrame}"${evidenceBlock}`;
+
+    const isBanned = (title: string) =>
+      banned.some(b => b.trim().toLowerCase() === String(title || "").trim().toLowerCase());
+    const countBannedLeaks = (p: any) =>
+      [...(p.opportunities || []), ...(p.solutions || []), ...(p.uncertainties || [])]
+        .filter((c: any) => isBanned(c?.title)).length;
+
+    // Retry once at higher temperature if the model leaks banned titles anyway
+    let parsed = await callOllama(systemInstruction + banInstruction, prompt, 0.8);
+    if (banned.length > 0 && countBannedLeaks(parsed) > 0) {
+      console.warn(`Landscape generation leaked ${countBannedLeaks(parsed)} banned title(s) — retrying`);
+      const retry = await callOllama(systemInstruction + banInstruction, prompt, 1.0);
+      if (countBannedLeaks(retry) < countBannedLeaks(parsed)) parsed = retry;
+    }
 
     // Add unique IDs and initialize rating default fields
     const mapCards = (list: any[], type: "opportunity" | "solution" | "uncertainty") => {
@@ -157,6 +181,73 @@ Follow these strict rules:
     return res.json(result);
   } catch (err) {
     console.error("Generate landscape error: ", err);
+    return res.status(502).json({ error: "Model generation failed", detail: String(err) });
+  }
+});
+
+// 1b. REGENERATE SINGLE CARD
+// Replaces one landscape card with a fresh alternative grounded in the CURRENT problem frame
+app.post("/api/landscape/regenerate-card", async (req, res) => {
+  const { problemFrame, card, otherTitles } = req.body;
+
+  if (!problemFrame || !card || !card.type) {
+    return res.status(400).json({ error: "problemFrame and card (with type) are required." });
+  }
+
+  const categorySpec: Record<string, { label: string; guidance: string; extraHint: string }> = {
+    opportunity: {
+      label: "Opportunity Area",
+      guidance: "a framing area describing a high-level angle for design intervention",
+      extraHint: "Category/Impact Tags"
+    },
+    solution: {
+      label: "Solution Family",
+      guidance: "an actionable, concrete idea or concept addressing the problem",
+      extraHint: "Concept Seed Keyword"
+    },
+    uncertainty: {
+      label: "Uncertainty Field",
+      guidance: "a critical real-world assumption, question, or risk that needs testing",
+      extraHint: "Crucial Question"
+    }
+  };
+  const spec = categorySpec[card.type];
+  if (!spec) {
+    return res.status(400).json({ error: `Unknown card type "${card.type}".` });
+  }
+
+  try {
+    const systemInstruction = `You are a world-class Service Design Coach and Game Master.
+The player wants to swap out one "${spec.label}" card on their design landscape for a fresh alternative, because the problem frame has evolved or the current card no longer resonates.
+
+Generate exactly ONE new ${spec.label}: ${spec.guidance}.
+
+Follow these strict rules:
+- The new card must be grounded in the CURRENT Problem Frame provided by the user.
+- It must take a clearly DIFFERENT angle than the card being replaced — not a rephrasing of it.
+- Do not duplicate any of the other cards already on the field.
+- Keep the title extremely tight, catchy, and elegant (max 4-5 words).
+- Keep the description concise and scannable (max 20 words).
+- Include an "extraLabel" (${spec.extraHint}, max 3 words).
+- No generic consulting jargon; make it tailored and evocative.
+Respond with a valid JSON object matching this schema EXACTLY:
+{ "title": "...", "description": "...", "extraLabel": "..." }`;
+
+    const prompt = `Current Problem Frame: "${problemFrame}"
+Card being replaced: "${card.title}" — ${card.description || ""}
+Other cards already on the field (do not duplicate): ${(otherTitles || []).map((t: string) => `"${t}"`).join(", ") || "(none)"}`;
+
+    const parsed = await callOllama(systemInstruction, prompt, 0.9);
+    return res.json({
+      id: `${card.type}-regen-${Date.now()}`,
+      type: card.type,
+      title: parsed.title,
+      description: parsed.description,
+      extraLabel: parsed.extraLabel,
+      rating: "low"
+    });
+  } catch (err) {
+    console.error("Regenerate card error: ", err);
     return res.status(502).json({ error: "Model generation failed", detail: String(err) });
   }
 });

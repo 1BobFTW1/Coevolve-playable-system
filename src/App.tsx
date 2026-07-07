@@ -146,7 +146,9 @@ export default function App() {
     { title: "Empirical Finding A", desc: "Users reacted strongly to the micro-timing and requested persistent progress charts." },
     { title: "Empirical Finding B", desc: "The speed-bump felt intuitive but users triggered bypass filters past 3 attempts." }
   ]);
-  const [runLogMessages, setRunLogMessages] = useState<string[]>([]);
+  // Each telemetry line keeps the timestamp of when it was appended, so the mock
+  // times stay sequential instead of re-rendering to the current time on every line.
+  const [runLogMessages, setRunLogMessages] = useState<{ time: string; msg: string }[]>([]);
   const [simulationProgress, setSimulationProgress] = useState<number>(0);
 
   // Message notifications
@@ -779,7 +781,8 @@ ${prep}
     setGameStage("RUN_HARVEST");
     setIsHarvesting(true);
     setSimulationProgress(5);
-    setRunLogMessages(["Establishing drill rig interface at prospect site...", "Reading human context feedback flow..."]);
+    const stampLog = (msg: string) => ({ time: new Date().toLocaleTimeString(), msg });
+    setRunLogMessages([stampLog("Establishing drill rig interface at prospect site..."), stampLog("Reading human context feedback flow...")]);
 
     const intervals = [
       { p: 25, m: "Friction triggers calibrated. Spawning test components on client workspaces..." },
@@ -791,7 +794,7 @@ ${prep}
     intervals.forEach((step, idx) => {
       setTimeout(() => {
         setSimulationProgress(step.p);
-        setRunLogMessages(prev => [...prev, step.m]);
+        setRunLogMessages(prev => [...prev, stampLog(step.m)]);
       }, (idx + 1) * 800);
     });
 
@@ -808,7 +811,7 @@ ${prep}
         setFindings(customFindings);
         setSimulationProgress(100);
         setIsHarvesting(false);
-        setRunLogMessages(prev => [...prev, "Completed live workshop manual harvest. Review data below."]);
+        setRunLogMessages(prev => [...prev, stampLog("Completed live workshop manual harvest. Review data below.")]);
       } else {
         // AI Generated simulation findings via API
         try {
@@ -826,14 +829,14 @@ ${prep}
           if (response.ok) {
             const data = await response.json();
             setFindings(data.findings || []);
-            setRunLogMessages(prev => [...prev, "Qualitative telemetry collected.", "Primary insights logged into current evidence board."]);
+            setRunLogMessages(prev => [...prev, stampLog("Qualitative telemetry collected."), stampLog("Primary insights logged into current evidence board.")]);
           } else {
             throw new Error("Harvest error");
           }
         } catch (err) {
           console.error("Harvest failed:", err);
           setFindings([]);
-          setRunLogMessages(prev => [...prev, "Harvest failed — is Ollama running? Try again."]);
+          setRunLogMessages(prev => [...prev, stampLog("Harvest failed — is Ollama running? Try again.")]);
           showFeedback("Harvest failed — is Ollama running? Try again.");
         } finally {
           setSimulationProgress(100);
@@ -1821,7 +1824,7 @@ ${prep}
 
                         <div className="text-center mt-6 space-y-3 px-6">
                           <span className="text-[9px] font-mono tracking-[0.4em] text-emerald-400 bg-emerald-950/70 border border-emerald-900/60 px-3 py-1 rounded-full uppercase font-bold">
-                            Active Seismic Scan
+                            {loopIndex > 1 ? `Loop ${loopIndex} · Re-Surveying Mutated Terrain` : "Active Seismic Scan"}
                           </span>
                           <div className="h-7 flex items-center justify-center">
                             <AnimatePresence mode="wait">
@@ -1837,6 +1840,27 @@ ${prep}
                               </motion.h3>
                             </AnimatePresence>
                           </div>
+
+                          {/* On loop restarts, show how the problem frame just co-evolved */}
+                          {loopIndex > 1 && history.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="max-w-md mx-auto bg-slate-900/80 border border-slate-800 rounded-xl px-5 py-3.5 text-left space-y-1.5"
+                            >
+                              <span className="block text-[8px] font-mono tracking-[0.3em] text-purple-300 uppercase font-bold">
+                                Your problem frame co-evolved
+                              </span>
+                              <p className="text-[10px] font-mono text-slate-500 leading-relaxed line-through decoration-slate-600">
+                                {history[history.length - 1].problemFrame}
+                              </p>
+                              <p className="text-[11px] text-white font-semibold leading-relaxed">
+                                <span className="text-emerald-400 mr-1.5">→</span>
+                                "{problemFrame}"
+                              </p>
+                            </motion.div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -2251,11 +2275,11 @@ ${prep}
                     </div>
 
                     <div className="bg-slate-950 rounded-xl p-4 font-mono text-[11px] text-slate-400 flex flex-col gap-2 h-48 overflow-y-auto border border-slate-900">
-                      {runLogMessages.map((msg, i) => (
+                      {runLogMessages.map((entry, i) => (
                         <div key={i} className="flex gap-2.5">
-                          <span className="text-slate-650 text-slate-500 font-mono shrink-0">{`[${new Date().toLocaleTimeString()}]`}</span>
+                          <span className="text-slate-650 text-slate-500 font-mono shrink-0">{`[${entry.time}]`}</span>
                           <span className={`leading-relaxed ${i === runLogMessages.length - 1 ? 'text-[#10B981] font-bold' : ''}`}>
-                            {msg}
+                            {entry.msg}
                           </span>
                         </div>
                       ))}
